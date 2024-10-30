@@ -1,0 +1,92 @@
+/* src/ConstructionScene.css */
+.construction-wrapper {
+  position: relative;
+  text-align: center;
+  padding-top: 50px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  overflow: hidden;
+}
+
+.title {
+  color: #ff6f00;
+  font-size: 2em;
+}
+
+.changing-message {
+  font-size: 1.2em;
+  color: #555;
+  margin-top: 10px;
+}
+
+.crane {
+  position: relative;
+  width: 120px;
+  height: 150px;
+  margin: 40px auto;
+  animation: craneMove 4s infinite ease-in-out;
+}
+
+.crane-arm {
+  position: relative;
+  width: 80px;
+  height: 4px;
+  background: #ff6f00;
+  transform-origin: left;
+  animation: craneSwing 2s infinite ease-in-out;
+}
+
+.crane-hook {
+  width: 10px;
+  height: 30px;
+  background: #ff4500;
+  position: absolute;
+  top: 4px;
+  left: 80px;
+}
+
+@keyframes craneMove {
+  0%, 100% { transform: translateX(-20px); }
+  50% { transform: translateX(20px); }
+}
+
+@keyframes craneSwing {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+.traffic-cone {
+  position: absolute;
+  bottom: 20px;
+  left: 20%;
+  width: 40px;
+  height: 40px;
+}
+
+.cone-body {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 40px solid #ff6f00;
+}
+
+.cone-stripe {
+  position: absolute;
+  top: 12px;
+  width: 40px;
+  height: 8px;
+  background: #fff;
+}
+
+.worker {
+  position: absolute;
+  bottom: 20px;
+  right: 20%;
+  font-size: 2em;
+}
+
+.worker-message {
+  font-size: 1em;
+  color: #777;
+}
