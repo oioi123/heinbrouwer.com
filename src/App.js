@@ -1,11 +1,14 @@
 // src/App.js
-import React from "react";
-import ConstructionScene from "./ConstructionScene";
+import React, { Suspense } from 'react';
+import OfficeScene from './components/OfficeScene';
+import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <ConstructionScene />
+    <div className="app-container">
+      <Suspense fallback={<div className="loading">Loading 3D Scene...</div>}>
+        <OfficeScene />
+      </Suspense>
     </div>
   );
 }
