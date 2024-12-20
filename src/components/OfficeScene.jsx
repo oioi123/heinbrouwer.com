@@ -1,16 +1,38 @@
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { Canvas, useThree, useLoader } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Environment } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, Environment, useGLTF } from '@react-three/drei';
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { FBXLoader } from 'three-stdlib';
 
 const PHOTOS = [
   '/photos/1690_24.jpg',
   '/photos/1691_16.jpg'
 ];
 
+// Create a texture loader with a loading manager
+const textureLoader = new TextureLoader();
+const textures = new Map();
+
+const GLBModel = ({ url, position, scale }) => {
+  const { scene } = useGLTF(url);
+  
+  const clonedScene = React.useMemo(() => {
+    return scene.clone();
+  }, [scene]);
+  
+  React.useEffect(() => {
+    if (clonedScene) {
+      clonedScene.position.set(...position);
+      clonedScene.scale.set(scale, scale, scale);
+    }
+  }, [clonedScene, position, scale]);
+
+  return <primitive object={clonedScene} />;
+};
+
+// Pre-load the model
+useGLTF.preload('/models/Table.glb');
 
 const Walls = () => {
   return (
@@ -46,13 +68,39 @@ const Laptop = () => {
   );
 };
 
+// Preload all textures
+PHOTOS.forEach(photo => {
+  TextureLoader.prototype.loadAsync(photo);
+});
+
 const InteractivePhotoFrame = ({ onPhotoClick, currentPhotoIndex, isZoomed }) => {
-  const texture = useLoader(
-    TextureLoader, 
-    PHOTOS[currentPhotoIndex],
-    undefined,
-    (error) => console.error('Error loading texture:', error)
-  );
+  const [currentTexture, setCurrentTexture] = useState(null);
+  const previousTexture = useRef(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadTexture = async () => {
+      try {
+        const newTexture = await new TextureLoader().loadAsync(PHOTOS[currentPhotoIndex]);
+        if (isMounted) {
+          previousTexture.current = currentTexture;
+          setCurrentTexture(newTexture);
+        }
+      } catch (error) {
+        console.error('Error loading texture:', error);
+      }
+    };
+
+    loadTexture();
+    
+    return () => {
+      isMounted = false;
+      if (previousTexture.current) {
+        previousTexture.current.dispose();
+      }
+    };
+  }, [currentPhotoIndex]);
 
   return (
     <mesh 
@@ -60,7 +108,7 @@ const InteractivePhotoFrame = ({ onPhotoClick, currentPhotoIndex, isZoomed }) =>
       onClick={onPhotoClick}
     >
       <boxGeometry args={[1.5, 1.2, 0.05]} />
-      <meshStandardMaterial map={texture} />
+      <meshStandardMaterial map={currentTexture || previousTexture.current} />
     </mesh>
   );
 };
@@ -131,26 +179,6 @@ const CameraController = ({ isZoomed, framePosition }) => {
   );
 };
 
-const FBXModel = ({ url, position, scale }) => {
-  const [model, setModel] = useState();
-
-  useEffect(() => {
-    const loader = new FBXLoader();
-    loader.load(
-      url,
-      (fbx) => {
-        fbx.scale.set(scale, scale, scale);
-        fbx.position.set(...position);
-        setModel(fbx);
-      },
-      undefined,
-      (error) => console.error('FBX loading error:', error)
-    );
-  }, [url, position, scale]);
-
-  return model ? <primitive object={model} /> : null;
-};
-
 const WelcomeOverlay = ({ isZoomed }) => {
   const [isVisible, setIsVisible] = useState(true);
 
@@ -216,59 +244,6 @@ const WelcomeOverlay = ({ isZoomed }) => {
   );
 };
 
-export default function OfficeScene() {
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const framePosition = [1.8, 2.2, 0]; // Same as frame position in InteractivePhotoFrame
-  const handlePhotoClick = () => setIsZoomed(true);
-
-  return (
-    <>
-      <Canvas style={{ width: '100%', height: '100%' }}>
-        <PerspectiveCamera makeDefault position={[0, 3, 5]} />
-        <CameraController 
-          isZoomed={isZoomed} 
-          framePosition={framePosition} 
-        />
-        <ambientLight intensity={0.8} />
-        <spotLight 
-          position={[1.8, 3.5, 2]} // Positioned near the photo frame
-          penumbra={0.8} 
-          angle={0.1}
-          intensity={3} // Increased intensity
-        />
-
-        <Walls />
-        <Laptop />
-        <InteractivePhotoFrame 
-          onPhotoClick={handlePhotoClick}
-          currentPhotoIndex={currentPhotoIndex}
-          isZoomed={isZoomed}
-        />
-        <Suspense fallback={null}>
-          <FBXModel 
-            url="/models/desk.fbx"
-            position={[0, 0.8, 0.8]}
-            scale={0.007} 
-          />
-        </Suspense>
-      </Canvas>
-
-      <WelcomeOverlay isZoomed={isZoomed} />
-
-      <PhotoNavigationUI
-        currentPhotoIndex={currentPhotoIndex}
-        totalPhotos={PHOTOS.length}
-        onNext={() => setCurrentPhotoIndex((prev) => (prev + 1) % PHOTOS.length)}
-        onPrev={() => setCurrentPhotoIndex((prev) => (prev - 1 + PHOTOS.length) % PHOTOS.length)}
-        onClose={() => setIsZoomed(false)}
-        isZoomed={isZoomed}
-        photos={PHOTOS}
-      />
-    </>
-  );
-}
-
 const PhotoNavigationUI = ({ 
   currentPhotoIndex, 
   totalPhotos, 
@@ -308,7 +283,6 @@ const PhotoNavigationUI = ({
         ←
       </button>
       
-      {/* Current photo display */}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -369,3 +343,58 @@ const PhotoNavigationUI = ({
     </div>
   );
 };
+
+const OfficeScene = () => {
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const framePosition = [1.8, 2.2, 0];
+  const handlePhotoClick = () => setIsZoomed(true);
+
+  return (
+    <>
+      <Canvas style={{ width: '100%', height: '100%' }}>
+        <PerspectiveCamera makeDefault position={[0, 3, 5]} />
+        <CameraController 
+          isZoomed={isZoomed} 
+          framePosition={framePosition} 
+        />
+        <ambientLight intensity={0.8} />
+        <spotLight 
+          position={[1.8, 3.5, 2]}
+          penumbra={0.8} 
+          angle={0.1}
+          intensity={3}
+        />
+
+        <Walls />
+        <Laptop />
+        <InteractivePhotoFrame 
+          onPhotoClick={handlePhotoClick}
+          currentPhotoIndex={currentPhotoIndex}
+          isZoomed={isZoomed}
+        />
+        <Suspense fallback={null}>
+          <GLBModel 
+            url="/models/Table.glb"
+            position={[0, -0.4, 0.8]}
+            scale={2} 
+          />
+        </Suspense>
+      </Canvas>
+
+      <WelcomeOverlay isZoomed={isZoomed} />
+
+      <PhotoNavigationUI
+        currentPhotoIndex={currentPhotoIndex}
+        totalPhotos={PHOTOS.length}
+        onNext={() => setCurrentPhotoIndex((prev) => (prev + 1) % PHOTOS.length)}
+        onPrev={() => setCurrentPhotoIndex((prev) => (prev - 1 + PHOTOS.length) % PHOTOS.length)}
+        onClose={() => setIsZoomed(false)}
+        isZoomed={isZoomed}
+        photos={PHOTOS}
+      />
+    </>
+  );
+};
+
+export default OfficeScene;
