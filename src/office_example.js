@@ -4,9 +4,6 @@ import { OrbitControls, PerspectiveCamera, Environment, useGLTF } from '@react-t
 import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { EffectComposer, Selection, Outline, N8AO, TiltShift2, ToneMapping } from "@react-three/postprocessing"
-import { easing } from 'maath';
-import { useFrame } from '@react-three/fiber';
 
 const PHOTOS = [
   '/photos/1690_24.jpg',
@@ -33,20 +30,15 @@ const GLBModel = ({ url, position, scale }) => {
 useGLTF.preload('/models/Table.glb');
 
 const Walls = () => {
-  const wallTexture = useLoader(TextureLoader, '/Textures/wall_basecolor.jpg');
-  const floorTexture = useLoader(TextureLoader, '/Textures/floor_basecolor.jpg');
-
   return (
     <group>
-      {/* Main Wall */}
       <mesh position={[0, 2, 0]}>
         <planeGeometry args={[8, 4, 2]} />
-        <meshStandardMaterial map={wallTexture} />
+        <meshStandardMaterial color="#e0e0e0" />
       </mesh>
-      {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 2]}>
         <planeGeometry args={[8, 4]} />
-        <meshStandardMaterial map={floorTexture} />
+        <meshStandardMaterial color="#cccccc" />
       </mesh>
     </group>
   );
@@ -67,16 +59,22 @@ const Laptop = () => {
   );
 };
 
-const InteractivePhotoFrame = React.memo(({ onPhotoClick, currentPhotoIndex }) => {
-  const texture = useLoader(TextureLoader, PHOTOS[currentPhotoIndex]);
+const InteractivePhotoFrame = React.memo(({ onPhotoClick, currentPhotoIndex, isZoomed }) => {
+  const texture = useLoader(
+    TextureLoader, 
+    PHOTOS[currentPhotoIndex],
+    undefined,
+    (error) => console.error('Error loading texture:', error)
+  );
 
   return (
-    <Suspense fallback={null}>
-      <mesh position={[1.8, 2.2, 0]} onClick={onPhotoClick}>
-        <boxGeometry args={[1.5, 1.2, 0.05]} />
-        <meshStandardMaterial map={texture} />
-      </mesh>
-    </Suspense>
+    <mesh 
+      position={[1.8, 2.2, 0]} 
+      onClick={onPhotoClick}
+    >
+      <boxGeometry args={[1.5, 1.2, 0.05]} />
+      <meshStandardMaterial map={texture} />
+    </mesh>
   );
 });
 
@@ -138,11 +136,10 @@ const CameraController = ({ isZoomed, framePosition }) => {
       enablePan={!isZoomed}
       enableZoom={!isZoomed}
       enableRotate={!isZoomed}
-      minPolarAngle={0.1}
-      maxPolarAngle={Math.PI / 2 - 0.1}
-      minAzimuthAngle={-Math.PI/2 + 0.1}
-      maxAzimuthAngle={Math.PI/2 - 0.1}
-      target={[0, 0, 0]}
+      minPolarAngle={0}
+      maxPolarAngle={Math.PI / 2}
+      minAzimuthAngle={-Math.PI/2}
+      maxAzimuthAngle={Math.PI/2}
     />
   );
 };
@@ -312,29 +309,6 @@ const PhotoNavigationUI = React.memo(({
   );
 });
 
-const Effects = () => {
-  const { size } = useThree();  // Get the size of the viewport (used for the Outline effect)
-
-  return (
-    <EffectComposer stencilBuffer disableNormalPass autoClear={false} multisampling={4}>  
-      {/* Outline Effect */}
-      <Outline
-        visibleEdgeColor="white"
-        hiddenEdgeColor="white"
-        blur
-        width={size.width * 1.25}
-        edgeStrength={10}
-      />
-      
-      {/* Tilt Shift Effect */}
-      <TiltShift2 samples={5} blur={0.1} />
-      
-      {/* Tone Mapping */}
-      <ToneMapping />
-    </EffectComposer>
-  );
-};
-
 const OfficeScene = () => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -357,7 +331,7 @@ const OfficeScene = () => {
   return (
     <>
       <Canvas style={{ width: '100%', height: '100%' }}>
-        <PerspectiveCamera makeDefault position={[0, 4, 6]} />
+        <PerspectiveCamera makeDefault position={[0, 3, 5]} />
         <CameraController 
           isZoomed={isZoomed} 
           framePosition={framePosition} 
@@ -384,7 +358,6 @@ const OfficeScene = () => {
             scale={2}
           />
         </Suspense>
-        <Effects />
       </Canvas>
 
       <WelcomeOverlay isZoomed={isZoomed} />
