@@ -5,8 +5,7 @@ import { TextureLoader } from 'three';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { EffectComposer, Selection, Outline, N8AO, TiltShift2, ToneMapping } from "@react-three/postprocessing"
-import { easing } from 'maath';
-import { useFrame } from '@react-three/fiber';
+
 
 const PHOTOS = [
   '/photos/1690_24.jpg',
