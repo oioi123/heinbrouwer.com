@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Scene, WebGLRenderer, Camera, SplatvLoader, BoxGeometry, MeshBasicMaterial, Mesh } from 'gsplat';
+import { Scene, WebGLRenderer, Camera, SplatvLoader } from 'gsplat';
 
 const SplatViewer = () => {
   const canvasRef = useRef();
@@ -7,6 +7,7 @@ const SplatViewer = () => {
   const sceneRef = useRef();
   const cameraRef = useRef();
   const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -20,8 +21,8 @@ const SplatViewer = () => {
 
     // Initialize camera
     const camera = new Camera();
-    camera.position.z = 5; // Fixed property naming
-    camera.update(); // If necessary
+    camera._position.z = 5;
+    camera.update();
     cameraRef.current = camera;
 
     // Handle resize
@@ -34,9 +35,7 @@ const SplatViewer = () => {
       }
 
       if (camera) {
-        camera.aspect = width / height; // Update aspect ratio if supported
-        camera.updateProjectionMatrix?.(); // For perspective cameras, if applicable
-        camera.update(); // If required
+        camera.update();
       }
     };
 
@@ -48,22 +47,15 @@ const SplatViewer = () => {
       try {
         setLoading(true);
         const response = await fetch('/models/desk.splat');
-        
-        if (!response.ok) throw new Error('Failed to load .splat file');
-        
         const arrayBuffer = await response.arrayBuffer();
         
         // Create Splat loader and load the data
         const loader = new SplatvLoader();
-        
-        if (typeof loader.loadFromBuffer !== 'function') {
-          throw new Error('SplatvLoader is not initialized correctly');
-        }
-
         const splat = await loader.loadFromBuffer(arrayBuffer);
-        scene.addSplat(splat); // Add the loaded splat to the scene
+        
+        scene.addSplat(splat);
         setLoading(false);
-        console.log('Splat loaded successfully:', splat);
+        console.log('Splat loaded successfully');
       } catch (error) {
         console.error('Error loading splat:', error);
         setLoading(false);
@@ -72,16 +64,10 @@ const SplatViewer = () => {
 
     loadSplat();
 
-    // Test rendering without .splat (optional, for debugging)
-    const testGeometry = new BoxGeometry(1, 1, 1);
-    const testMaterial = new MeshBasicMaterial({ color: 0xff0000 });
-    const testMesh = new Mesh(testGeometry, testMaterial);
-    scene.add(testMesh); // Add test mesh to verify renderer is working
-
     // Animation loop
     let animationFrameId;
     const animate = () => {
-      camera.update(); // If required
+      camera.update();
       renderer.render(scene, camera);
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -96,7 +82,7 @@ const SplatViewer = () => {
     };
   }, []);
 
-  // Mouse controls
+  // Mouse controls remain the same...
   useEffect(() => {
     if (!canvasRef.current || !cameraRef.current) return;
 
@@ -116,10 +102,10 @@ const SplatViewer = () => {
       const deltaX = e.clientX - previousX;
       const deltaY = e.clientY - previousY;
 
-      cameraRef.current.rotation.y += deltaX * 0.01;
-      cameraRef.current.rotation.x += deltaY * 0.01;
+      cameraRef.current._rotation.y += deltaX * 0.01;
+      cameraRef.current._rotation.x += deltaY * 0.01;
       
-      cameraRef.current.update(); // If necessary
+      cameraRef.current.update();
 
       previousX = e.clientX;
       previousY = e.clientY;
@@ -132,8 +118,8 @@ const SplatViewer = () => {
     const handleWheel = (e) => {
       if (!cameraRef.current) return;
       const zoomSpeed = 0.001;
-      cameraRef.current.position.z += e.deltaY * zoomSpeed;
-      cameraRef.current.update(); // If required
+      cameraRef.current._position.z += e.deltaY * zoomSpeed;
+      cameraRef.current.update();
     };
 
     const canvas = canvasRef.current;
@@ -175,6 +161,7 @@ const SplatViewer = () => {
           textAlign: 'center',
         }}>
           <div>Loading Splat...</div>
+          <div>{progress}%</div>
         </div>
       )}
     </div>

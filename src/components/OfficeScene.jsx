@@ -134,8 +134,8 @@ const CameraController = ({ isZoomed, framePosition }) => {
   return (
     <OrbitControls 
       ref={controlsRef}
-      enablePan={!isZoomed}
-      enableZoom={!isZoomed}
+      enablePan={false} // Disable panning
+      enableZoom={false} // Disable zooming
       enableRotate={!isZoomed}
       minPolarAngle={0.1}
       maxPolarAngle={Math.PI / 2 - 0.1}
