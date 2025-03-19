@@ -279,7 +279,7 @@ const PhotoNavigationUI = React.memo(({
         onClick={onClose}
         style={{
           position: 'absolute',
-          top: '2rem',
+          top: '3rem',
           right: '2rem',
           pointerEvents: 'auto',
           padding: '0.5rem 1rem',
