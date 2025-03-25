@@ -299,12 +299,17 @@ const PortfolioTemplate = () => {
           left: '50%',
           transform: 'translateX(-50%)',
           textAlign: 'center',
-          color: '#fff'
-        }}>
-          <p style={{ marginBottom: '1rem' }}>Scroll to explore</p>
+          color: '#fff',
+          cursor: 'pointer'
+        }}
+        onClick={() => {
+          document.querySelector('#cv-content')?.scrollIntoView({behavior:'smooth'});
+        }}
+        >
+          <p style={{ marginBottom: '1rem' }}>Scroll /click to explore</p>
           <div>↓</div>
         </div>
-      </div>
+        </div>
       
       {/* Scrollable Content */}
       <div style={styles.contentContainer}>
@@ -611,7 +616,7 @@ const PortfolioTemplate = () => {
                     <div style={styles.card}>
                       <h4 style={{ color: '#2c3e50', marginBottom: '1rem' }}>Fundraising Committee Member</h4>
                       <ul style={{ marginLeft: '1.25rem' }}>
-                        <li style={{ marginBottom: '0.5rem' }}>Raised over €3,000 for "Oog voor Utrecht" charity</li>
+                        <li style={{ marginBottom: '0.5rem' }}>Raised over €2,400 for "Oog voor Utrecht" charity</li>
                         <li style={{ marginBottom: '0.5rem' }}>Coordinated fundraising initiatives and community outreach</li>
                       </ul>
                     </div>

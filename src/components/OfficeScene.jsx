@@ -73,8 +73,169 @@ const INTERACTION_TYPES = {
   WEBSITE: 'website'
 };
 
-const GLBModel = ({ url, position, rotation = [0, 0, 0], scale, onClick }) => {
+const HoverEffect = ({ children }) => {
+  const [hovered, setHovered] = useState(false);
+  const childRef = useRef();
+  
+  // Get child position
+  const [childPosition, setChildPosition] = useState([0, 0, 0]);
+  const [childGeometry, setChildGeometry] = useState(null);
+  const [childRotation, setChildRotation] = useState([0, 0, 0]);
+  
+  // Process child to get position and geometry info
+  useEffect(() => {
+    if (childRef.current) {
+      // Store position
+      setChildPosition([
+        childRef.current.position.x,
+        childRef.current.position.y,
+        childRef.current.position.z
+      ]);
+      
+      // Store rotation
+      if (childRef.current.rotation) {
+        setChildRotation([
+          childRef.current.rotation.x,
+          childRef.current.rotation.y,
+          childRef.current.rotation.z
+        ]);
+      }
+      
+      // Try to get geometry
+      if (childRef.current.geometry) {
+        setChildGeometry(childRef.current.geometry.clone());
+      }
+    }
+  }, [childRef.current]);
+  
+  // Wrap the children with pointer event handlers and ref
+  const childrenWithEvents = React.Children.map(children, (child, index) => {
+    // Only apply ref to the first child
+    if (index === 0) {
+      return React.cloneElement(child, {
+        ref: childRef,
+        onPointerOver: (e) => {
+          e.stopPropagation();
+          setHovered(true);
+          document.body.style.cursor = 'pointer';
+          // Call the original onPointerOver if it exists
+          if (child.props.onPointerOver) child.props.onPointerOver(e);
+        },
+        onPointerOut: (e) => {
+          e.stopPropagation();
+          setHovered(false);
+          document.body.style.cursor = 'auto';
+          // Call the original onPointerOut if it exists
+          if (child.props.onPointerOut) child.props.onPointerOut(e);
+        }
+      });
+    }
+    return child;
+  });
+  
+  return (
+    <group>
+      {childrenWithEvents}
+      {hovered && (
+        <mesh 
+          position={childPosition} 
+          rotation={childRotation}
+          renderOrder={1000}
+        >
+          {childRef.current && childRef.current.geometry ? (
+            // If we can get the actual geometry, use it
+            <bufferGeometry attach="geometry" {...childRef.current.geometry} />
+          ) : (
+            // Otherwise use a plane or box geometry as fallback
+            <boxGeometry args={[1, 1, 0.1]} />
+          )}
+          <meshBasicMaterial 
+            color="white" 
+            transparent 
+            opacity={0.02} 
+            depthTest={false} 
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+    </group>
+  );
+};
+
+// IMPROVED CLICKABLE MESH COMPONENT
+// This is a simplified approach that works more reliably
+const ClickableMesh = ({ 
+  geometry, 
+  material, 
+  position = [0, 0, 0], 
+  rotation = [0, 0, 0],
+  onClick,
+  children,
+  ...props 
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const meshRef = useRef();
+  
+  const handlePointerOver = (e) => {
+    e.stopPropagation();
+    setHovered(true);
+    document.body.style.cursor = 'pointer';
+  };
+  
+  const handlePointerOut = (e) => {
+    e.stopPropagation();
+    setHovered(false);
+    document.body.style.cursor = 'auto';
+  };
+  
+  const handleClick = (e) => {
+    if (onClick) {
+      e.stopPropagation();
+      onClick(e);
+    }
+  };
+  
+  return (
+    <group>
+      <mesh
+        ref={meshRef}
+        position={position}
+        rotation={rotation}
+        onClick={handleClick}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        {...props}
+      >
+        {geometry}
+        {material}
+        {children}
+      </mesh>
+      
+      {hovered && (
+        <mesh
+          position={position}
+          rotation={rotation}
+          renderOrder={1000}
+        >
+          {geometry}
+          <meshBasicMaterial
+            color="white"
+            transparent
+            opacity={0.2}
+            depthTest={false}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+    </group>
+  );
+};
+
+// IMPROVED GLB MODEL WITH CORRECT HOVER POSITION
+const ClickableGLBModel = ({ url, position, rotation = [0, 0, 0], scale, onClick }) => {
   const { scene } = useGLTF(url);
+  const [hovered, setHovered] = useState(false);
+  const modelRef = useRef();
   
   const clonedScene = React.useMemo(() => {
     return scene.clone();
@@ -86,7 +247,6 @@ const GLBModel = ({ url, position, rotation = [0, 0, 0], scale, onClick }) => {
       clonedScene.scale.set(scale, scale, scale);
       clonedScene.rotation.set(...rotation);
       
-      // Make the model interactive if onClick is provided
       if (onClick) {
         clonedScene.traverse((child) => {
           if (child.isMesh) {
@@ -95,9 +255,15 @@ const GLBModel = ({ url, position, rotation = [0, 0, 0], scale, onClick }) => {
         });
       }
     }
-  }, [clonedScene, position, rotation, scale, onClick]);
+    
+    // Update cursor based on hover state
+    document.body.style.cursor = hovered ? 'pointer' : 'auto';
+    
+    return () => {
+      document.body.style.cursor = 'auto';
+    };
+  }, [clonedScene, position, rotation, scale, onClick, hovered]);
 
-  // Add click event handler
   const handleClick = (event) => {
     if (onClick) {
       event.stopPropagation();
@@ -105,7 +271,89 @@ const GLBModel = ({ url, position, rotation = [0, 0, 0], scale, onClick }) => {
     }
   };
 
-  return <primitive object={clonedScene} onClick={handleClick} />;
+  // For GLB models, create a simple hover box at the right position
+  if (onClick) {
+    return (
+      <group ref={modelRef}>
+        <primitive 
+          object={clonedScene} 
+          onClick={handleClick}
+          onPointerOver={() => setHovered(true)}
+          onPointerOut={() => setHovered(false)}
+        />
+        {hovered && (
+          <mesh 
+            position={position} 
+            rotation={rotation}
+            scale={[scale * 1.1, scale * 1.1, scale * 1.1]}
+          >
+            <boxGeometry args={[1, 1, 1]} />
+            <meshBasicMaterial color="white" transparent opacity={0.15} wireframe />
+          </mesh>
+        )}
+      </group>
+    );
+  }
+  
+  return <primitive object={clonedScene} />;
+};
+
+
+const GLBModel = ({ url, position, rotation = [0, 0, 0], scale, onClick }) => {
+  const { scene } = useGLTF(url);
+  const [hovered, setHovered] = useState(false);
+  
+  const clonedScene = React.useMemo(() => {
+    return scene.clone();
+  }, [scene]);
+  
+  React.useEffect(() => {
+    if (clonedScene) {
+      clonedScene.position.set(...position);
+      clonedScene.scale.set(scale, scale, scale);
+      clonedScene.rotation.set(...rotation);
+      
+      // Make all meshes in the model interactive
+      clonedScene.traverse((child) => {
+        if (child.isMesh) {
+          child.userData.clickable = true;
+          // Add the hover and click handlers to each mesh
+          child.onclick = handleClick;
+          child.onpointerover = () => setHovered(true);
+          child.onpointerout = () => setHovered(false);
+        }
+      });
+    }
+    
+    // Apply cursor change on hover if clickable
+    if (hovered && onClick) {
+      document.body.style.cursor = 'pointer';
+    } else {
+      document.body.style.cursor = 'auto';
+    }
+    
+    return () => {
+      document.body.style.cursor = 'auto';
+    };
+  }, [clonedScene, position, rotation, scale, onClick, hovered]);
+
+  // Add click event handler with debugging
+  const handleClick = useCallback((event) => {
+    if (onClick) {
+      event.stopPropagation();
+      console.log('Model clicked:', url);
+      onClick(event);
+    }
+  }, [onClick, url]);
+
+  return (
+    <primitive 
+      object={clonedScene} 
+      onClick={handleClick}
+      onPointerOver={() => onClick && setHovered(true)}
+      onPointerOut={() => onClick && setHovered(false)}
+    />
+  );
 };
 
 useGLTF.preload('/models/Table.glb');
@@ -192,21 +440,17 @@ const CVDocument = ({ onCVClick, setShowCVViewer }) => {
   
   const handleClick = (event) => {
     event.stopPropagation();
-    // First trigger the camera movement
     onCVClick(event);
-    // Then after a delay, show the CV viewer
     setTimeout(() => setShowCVViewer(true), 1000);
   };
   
   return (
     <group position={[-0.6, 1.11, 0.7]} rotation={[Math.PI/2, Math.PI, Math.PI/0.95]}>
-      <mesh onClick={handleClick}>
-        <planeGeometry args={[0.4, 0.6]} />
-        <meshStandardMaterial 
-          map={cvTexture}
-          color="#f5f5f5"
-        />
-      </mesh>
+      <ClickableMesh
+        onClick={handleClick}
+        geometry={<planeGeometry args={[0.4, 0.6]} />}
+        material={<meshStandardMaterial map={cvTexture} color="#f5f5f5" />}
+      />
     </group>
   );
 };
@@ -252,9 +496,7 @@ const DegreeFrame = ({ onDegreeClick, setShowThesisDisplay }) => {
   
   const handleClick = (event) => {
     event.stopPropagation();
-    // First trigger the camera movement
     onDegreeClick(event);
-    // Then after a delay, show the thesis display
     setTimeout(() => setShowThesisDisplay(true), 1000);
   };
   
@@ -266,26 +508,29 @@ const DegreeFrame = ({ onDegreeClick, setShowThesisDisplay }) => {
         <meshStandardMaterial color="#5e4b2b" />
       </mesh>
       
-      {/* Degree certificate */}
-      <mesh position={[0, 0, 0.03]} onClick={handleClick}>
-        <planeGeometry args={[1, 1.3]} />
-        <meshStandardMaterial
-          map={degreeTexture}
-        />
-      </mesh>
+      {/* Degree certificate with hover effect */}
+      <ClickableMesh
+        position={[0, 0, 0.03]}
+        onClick={handleClick}
+        geometry={<planeGeometry args={[1, 1.3]} />}
+        material={<meshStandardMaterial map={degreeTexture} />}
+      />
     </group>
   );
 };
 
 const InteractivePhotoFrame = React.memo(({ onPhotoClick, currentPhotoIndex }) => {
-  const texture = useLoader(TextureLoader, PHOTOS[currentPhotoIndex]);
-
+  const textureArray = useLoader(TextureLoader, PHOTOS);
+  const currentTexture = textureArray[currentPhotoIndex];
+  
   return (
     <Suspense fallback={null}>
-      <mesh position={[1.75, 2.5, 0]} onClick={onPhotoClick}>
-        <boxGeometry args={[1.5, 1.2, 0.05]} />
-        <meshStandardMaterial map={texture} />
-      </mesh>
+      <ClickableMesh
+        position={[1.75, 2.5, 0]}
+        onClick={onPhotoClick}
+        geometry={<boxGeometry args={[1.5, 1.2, 0.05]} />}
+        material={<meshStandardMaterial map={currentTexture} />}
+      />
     </Suspense>
   );
 });
@@ -296,69 +541,119 @@ const CameraController = ({ interactionState, targetPosition }) => {
   const targetRef = useRef(new THREE.Vector3(0, 0, 0));
   const isAnimatingRef = useRef(false);
   const prevInteractionTypeRef = useRef(INTERACTION_TYPES.NONE);
+  const userInteractTimeoutRef = useRef(null);
+
+  // Debug function to track camera state
+  const logCameraState = useCallback((message) => {
+    console.log(
+      `${message} - Type: ${interactionState.type}, Position: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`
+    );
+  }, [interactionState.type, camera.position]);
 
   useEffect(() => {
-    // Only animate if the interaction type has changed
-    if (prevInteractionTypeRef.current === interactionState.type || isAnimatingRef.current) return;
-  
-    const isZoomed = interactionState.type !== INTERACTION_TYPES.NONE;
-    const position = targetPosition[interactionState.type] || { x: 0, y: 3, z: 5 };
-    
-    const targetLookAt = isZoomed 
-      ? new THREE.Vector3(position.lookAt.x, position.lookAt.y, position.lookAt.z) 
-      : new THREE.Vector3(0, 0, 0);
-  
-    // Update the previous interaction type
-    prevInteractionTypeRef.current = interactionState.type;
-    
-    // Prevent animation if user is actively interacting with controls
-    if (controlsRef.current?.userRotate) return;
-  
-    isAnimatingRef.current = true;
-  
-    // Animate camera position
-    gsap.to(camera.position, {
-      x: position.x,
-      y: position.y,
-      z: position.z,
-      duration: 0.5,
-      ease: 'power2.inOut',
-      onComplete: () => {
+    // Forcibly end any ongoing animation when the interaction type changes
+    if (prevInteractionTypeRef.current !== interactionState.type) {
+      logCameraState("Interaction type changed");
+      
+      // Clear any existing animation
+      if (isAnimatingRef.current) {
+        gsap.killTweensOf(camera.position);
+        gsap.killTweensOf(targetRef.current);
         isAnimatingRef.current = false;
       }
-    });
-  
-    // Animate camera look-at target
-    gsap.to(targetRef.current, {
-      x: targetLookAt.x,
-      y: targetLookAt.y,
-      z: targetLookAt.z,
-      duration: 0.5,
-      ease: 'power2.inOut',
-      onUpdate: () => {
-        controlsRef.current.target.copy(targetRef.current);
-        controlsRef.current.update();
+      
+      const isZoomed = interactionState.type !== INTERACTION_TYPES.NONE;
+      const position = targetPosition[interactionState.type] || { x: 0, y: 3, z: 5 };
+      
+      const targetLookAt = isZoomed 
+        ? new THREE.Vector3(position.lookAt.x, position.lookAt.y, position.lookAt.z) 
+        : new THREE.Vector3(0, 0, 0);
+      
+      // Update the previous interaction type
+      prevInteractionTypeRef.current = interactionState.type;
+      
+      // Force reset userRotate to ensure animation will play
+      if (controlsRef.current) {
+        controlsRef.current.userRotate = false;
       }
-    });
-  }, [interactionState, targetPosition, camera.position]);
+      
+      logCameraState("Starting animation");
+      isAnimatingRef.current = true;
+      
+      // Use a single GSAP timeline for better synchronization
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimatingRef.current = false;
+          logCameraState("Animation complete");
+        }
+      });
+      
+      // Add camera position animation to timeline
+      tl.to(camera.position, {
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        duration: 0.8,
+        ease: 'power2.inOut'
+      }, 0);
+      
+      // Add target animation to timeline
+      tl.to(targetRef.current, {
+        x: targetLookAt.x,
+        y: targetLookAt.y,
+        z: targetLookAt.z,
+        duration: 0.8,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          if (controlsRef.current) {
+            controlsRef.current.target.copy(targetRef.current);
+            controlsRef.current.update();
+          }
+        }
+      }, 0);
+    }
+  }, [interactionState, targetPosition, camera, logCameraState]);
 
   // Track when user is interacting with controls
   const onStart = useCallback(() => {
-    controlsRef.current.userRotate = true;
-  }, []);
+    if (controlsRef.current) {
+      controlsRef.current.userRotate = true;
+      logCameraState("User started rotating");
+    }
+  }, [logCameraState]);
 
   const onEnd = useCallback(() => {
+    // Clear any existing timeout
+    if (userInteractTimeoutRef.current) {
+      clearTimeout(userInteractTimeoutRef.current);
+    }
+    
     // Add a short delay before allowing automatic camera movements again
-    setTimeout(() => {
-      controlsRef.current.userRotate = false;
-    }, 500);
+    userInteractTimeoutRef.current = setTimeout(() => {
+      if (controlsRef.current) {
+        controlsRef.current.userRotate = false;
+        logCameraState("User rotation ended");
+      }
+      userInteractTimeoutRef.current = null;
+    }, 300);
+  }, [logCameraState]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (userInteractTimeoutRef.current) {
+        clearTimeout(userInteractTimeoutRef.current);
+      }
+    };
   }, []);
 
   return (
     <OrbitControls 
       ref={controlsRef}
-      enablePan={false} // Disable panning
-      enableZoom={false} // Disable zooming
+      enablePan={false}
+      enableZoom={true} // Enable zoom for better exploration
+      minDistance={2} // Set minimum zoom distance 
+      maxDistance={10} // Set maximum zoom distance
       enableRotate={interactionState.type === INTERACTION_TYPES.NONE}
       minPolarAngle={0.1}
       maxPolarAngle={Math.PI / 2 - 0.1}
@@ -777,6 +1072,7 @@ const Effects = () => {
   );
 };
 
+
 const Scene = ({ 
   resolutionScale, 
   interactionState, 
@@ -788,7 +1084,9 @@ const Scene = ({
   handleWebsiteClick,
   setShowThesisDisplay,
   setShowCVViewer
+  
 }) => {
+  const [hoveredObject, setHoveredObject] = useState(null);
   return (
     <>
       <ResolutionScaler scale={resolutionScale} />
@@ -834,13 +1132,13 @@ const Scene = ({
           position={[-2, 0.85, 0.8]}
           scale={0.02}
         />
-        <GLBModel 
+        <ClickableGLBModel 
           url="/models/Laptop.glb"
           position={[0, 1.1, 0.8]}
           rotation={[0, -Math.PI/2, 0]} 
           scale={0.11}
           onClick={handleWebsiteClick}
-        />                              
+        />                        
       </Suspense>
       <Effects />
     </>
@@ -930,20 +1228,26 @@ const OfficeScene = () => {
   };
   
   // Handlers for different interactions
-  const handlePhotoClick = () => {
+  const handlePhotoClick = useCallback((event) => {
+    console.log("Photo clicked");
+    event.stopPropagation();
     setInteractionState({ type: INTERACTION_TYPES.PHOTO, index: currentPhotoIndex });
-  };
+  }, [currentPhotoIndex]);
   
-  const handleDegreeClick = () => {
+  const handleDegreeClick = useCallback((event) => {
+    console.log("Degree clicked");
+    event.stopPropagation();
     setInteractionState({ type: INTERACTION_TYPES.DEGREE, index: 0 });
-  };
+  }, []);
   
-  const handleCVClick = () => {
+  const handleCVClick = useCallback((event) => {
+    console.log("CV clicked");
+    event.stopPropagation();
     setInteractionState({ type: INTERACTION_TYPES.CV, index: 0 });
-  };
+  }, []);
   
   const handleWebsiteClick = useCallback((event) => {
-    // Stop event propagation to prevent other objects from receiving the click
+    console.log("Laptop clicked");
     event.stopPropagation();
     setInteractionState({ type: INTERACTION_TYPES.WEBSITE, index: 0 });
   }, []);
