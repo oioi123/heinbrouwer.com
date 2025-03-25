@@ -9,36 +9,7 @@ import ThesisDisplayComponent from './ThesisDisplayComponent';
 import CVViewer from './CVViewer';
 import { GithubIcon, LinkedinIcon, MailIcon, GlobeIcon } from 'lucide-react';
 
-const ResolutionScaler = ({ scale = 0.75 }) => {
-  const { gl, size, camera } = useThree();
-  
-  useEffect(() => {
-    // Set renderer's pixel ratio based on the device's pixel ratio and our scale
-    const pixelRatio = Math.min(window.devicePixelRatio, 2) * scale;
-    gl.setPixelRatio(pixelRatio);
-    
-    // Adjust the size of the renderer
-    const scaledWidth = Math.floor(size.width * scale);
-    const scaledHeight = Math.floor(size.height * scale);
-    gl.setSize(scaledWidth, scaledHeight, false);
-    
-    // Update camera aspect ratio and projection matrix
-    camera.aspect = size.width / size.height;
-    camera.updateProjectionMatrix();
-    
-    // Make sure the canvas still fills the container
-    gl.domElement.style.width = '100%';
-    gl.domElement.style.height = '100%';
-    
-    return () => {
-      // Reset to default when component unmounts
-      gl.setPixelRatio(window.devicePixelRatio);
-      gl.setSize(size.width, size.height, false);
-    };
-  }, [gl, size, scale, camera]);
-  
-  return null;
-};
+
 
 const PHOTOS = [
   '/photos/1690_24.jpg',
@@ -733,82 +704,16 @@ const styles = {
   },
 };
 
+
+
 const Effects = () => {
+  const { size } = useThree();
+
   return (
     <EffectComposer stencilBuffer={false} disableNormalPass autoClear={false} multisampling={2}>  
-      {/* Reduced to just ToneMapping for better performance */}
+      {/* Keep only the most important effect */}
       <ToneMapping />
     </EffectComposer>
-  );
-};
-
-const Scene = ({ 
-  resolutionScale, 
-  interactionState, 
-  targetPositions,
-  currentPhotoIndex,
-  handlePhotoClick,
-  handleDegreeClick,
-  handleCVClick, 
-  handleWebsiteClick,
-  setShowThesisDisplay,
-  setShowCVViewer
-}) => {
-  return (
-    <>
-      <ResolutionScaler scale={resolutionScale} />
-      <PerspectiveCamera makeDefault position={[0, 4, 6]} />
-      <CameraController 
-        interactionState={interactionState}
-        targetPosition={targetPositions}
-      />
-      <ambientLight intensity={0.8} />
-      <Rug />
-      <Walls />
-      <DegreeFrame 
-        onDegreeClick={handleDegreeClick} 
-        setShowThesisDisplay={setShowThesisDisplay}
-      />
-      <CVDocument 
-        onCVClick={handleCVClick} 
-        setShowCVViewer={setShowCVViewer}
-      />
-      <InteractivePhotoFrame 
-        onPhotoClick={handlePhotoClick}
-        currentPhotoIndex={currentPhotoIndex}
-      />
-      <Suspense fallback={null}>
-        <GLBModel 
-          url="/models/Table.glb"
-          position={[0, -0.4, 0.8]}
-          scale={2}
-        />
-        <GLBModel 
-          url="/models/Lamp.glb"
-          position={[3, 0, 0.8]}
-          rotation={[0,Math.PI,0]}
-          scale={2}
-        />
-        <GLBModel 
-          url="/models/Stool.glb"
-          position={[-2, 0, 0.8]}
-          scale={2}
-        />
-        <GLBModel 
-          url="/models/Plant.glb"
-          position={[-2, 0.85, 0.8]}
-          scale={0.02}
-        />
-        <GLBModel 
-          url="/models/Laptop.glb"
-          position={[0, 1.1, 0.8]}
-          rotation={[0, -Math.PI/2, 0]} 
-          scale={0.11}
-          onClick={handleWebsiteClick}
-        />                              
-      </Suspense>
-      <Effects />
-    </>
   );
 };
 
@@ -821,69 +726,6 @@ const OfficeScene = () => {
   const [showCVViewer, setShowCVViewer] = useState(false);
   const [showThesisDisplay, setShowThesisDisplay] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  // Add state for resolution scaling
-  const [resolutionScale, setResolutionScale] = useState(0.75); // Default to 75%
-  
-  // Performance monitoring with useRef to avoid re-renders
-  const fpsRef = useRef(60);
-  const [displayFps, setDisplayFps] = useState(60); // Only for display purposes
-  const lastTimeRef = useRef(0);
-  const frameCountRef = useRef(0);
-  const currentScaleRef = useRef(0.75);
-  const fpsUpdateTimerRef = useRef(null);
-  
-  // Dynamic resolution adjustment based on performance
-  useEffect(() => {
-    let animationFrameId;
-    let lastFpsUpdate = 0;
-    
-    const updateFps = (time) => {
-      frameCountRef.current++;
-      
-      // Update FPS every second
-      if (time - lastFpsUpdate >= 1000) {
-        const currentFps = Math.round((frameCountRef.current * 1000) / (time - lastFpsUpdate));
-        fpsRef.current = currentFps;
-        
-        // Update display FPS less frequently to avoid re-renders
-        if (!fpsUpdateTimerRef.current) {
-          fpsUpdateTimerRef.current = setTimeout(() => {
-            setDisplayFps(fpsRef.current);
-            fpsUpdateTimerRef.current = null;
-          }, 500);
-        }
-        
-        // Adjust resolution scale based on performance
-        let newScale = currentScaleRef.current;
-        if (currentFps < 30 && newScale > 0.5) {
-          newScale = Math.max(0.5, newScale - 0.05);
-        } else if (currentFps > 55 && newScale < 1) {
-          newScale = Math.min(1.05, newScale + 0.05);
-        }
-        
-        // Only update state if the scale has changed significantly
-        if (Math.abs(newScale - currentScaleRef.current) >= 0.05) {
-          currentScaleRef.current = newScale;
-          setResolutionScale(newScale);
-        }
-        
-        frameCountRef.current = 0;
-        lastFpsUpdate = time;
-      }
-      
-      lastTimeRef.current = time;
-      animationFrameId = requestAnimationFrame(updateFps);
-    };
-    
-    animationFrameId = requestAnimationFrame(updateFps);
-    
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      if (fpsUpdateTimerRef.current) {
-        clearTimeout(fpsUpdateTimerRef.current);
-      }
-    };
-  }, []);
   
   // Camera positions for different interaction targets
   const targetPositions = {
@@ -935,39 +777,59 @@ const OfficeScene = () => {
   
   return (
     <>
-      <Canvas 
-        style={{ width: '100%', height: '100%' }}
-        camera={{ position: [0, 4, 6], fov: 60 }}
-      >
-        <Scene 
-          resolutionScale={resolutionScale}
+      <Canvas style={{ width: '100%', height: '100%' }}>
+        <PerspectiveCamera makeDefault position={[0, 4, 6]} />
+        <CameraController 
           interactionState={interactionState}
-          targetPositions={targetPositions}
-          currentPhotoIndex={currentPhotoIndex}
-          handlePhotoClick={handlePhotoClick}
-          handleDegreeClick={handleDegreeClick}
-          handleCVClick={handleCVClick}
-          handleWebsiteClick={handleWebsiteClick}
+          targetPosition={targetPositions}
+        />
+        <ambientLight intensity={0.8} />
+        <Rug />
+        <Walls />
+        <DegreeFrame 
+          onDegreeClick={handleDegreeClick} 
           setShowThesisDisplay={setShowThesisDisplay}
+        />
+        <CVDocument 
+          onCVClick={handleCVClick} 
           setShowCVViewer={setShowCVViewer}
         />
+        <InteractivePhotoFrame 
+          onPhotoClick={handlePhotoClick}
+          currentPhotoIndex={currentPhotoIndex}
+        />
+        <Suspense fallback={null}>
+          <GLBModel 
+            url="/models/Table.glb"
+            position={[0, -0.4, 0.8]}
+            scale={2}
+          />
+          <GLBModel 
+            url="/models/Lamp.glb"
+            position={[3, 0, 0.8]}
+            rotation={[0,Math.PI,0]}
+            scale={2}
+          />
+          <GLBModel 
+            url="/models/Stool.glb"
+            position={[-2, 0, 0.8]}
+            scale={2}
+          />
+          <GLBModel 
+            url="/models/Plant.glb"
+            position={[-2, 0.85, 0.8]}
+            scale={0.02}
+          />
+          <GLBModel 
+            url="/models/Laptop.glb"
+            position={[0, 1.1, 0.8]}
+            rotation={[0, -Math.PI/2, 0]} 
+            scale={0.11}
+            onClick={handleWebsiteClick}
+          />                              
+        </Suspense>
+        <Effects />
       </Canvas>
-
-      {/* Performance monitor */}
-      <div style={{
-        position: 'fixed',
-        bottom: '10px',
-        left: '10px',
-        background: 'rgba(0,0,0,0.5)',
-        color: 'white',
-        padding: '5px 10px',
-        borderRadius: '5px',
-        fontSize: '12px',
-        zIndex: 1000,
-        pointerEvents: 'none'
-      }}>
-        FPS: {displayFps} | Resolution: {Math.round(resolutionScale * 100)}%
-      </div>
 
       <WelcomeOverlay isInteracting={interactionState.type !== INTERACTION_TYPES.NONE} />
 
@@ -985,6 +847,7 @@ const OfficeScene = () => {
         isVisible={showThesisDisplay} 
         onClose={() => {
           setShowThesisDisplay(false);
+          // Reset camera position when closing
           setInteractionState({ type: INTERACTION_TYPES.NONE, index: 0 });
         }} 
       />
@@ -993,6 +856,7 @@ const OfficeScene = () => {
         isVisible={showCVViewer} 
         onClose={() => {
           setShowCVViewer(false);
+          // Reset camera position when closing
           setInteractionState({ type: INTERACTION_TYPES.NONE, index: 0 });
         }} 
       />
@@ -1006,4 +870,3 @@ const OfficeScene = () => {
 };
 
 export default OfficeScene;
-
