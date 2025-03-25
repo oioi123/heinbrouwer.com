@@ -46,24 +46,17 @@ const styles = {
     display: 'flex',
     flexDirection: 'column'
   },
-  nav: {
-    position: 'fixed',
-    width: '100%',
-    zIndex: 50,
-    transition: 'all 0.3s',
-    padding: '1rem',
-  },
-  navScrolled: {
-    backgroundColor: '#2c3e50',
-    padding: '0.5rem 1rem',
-  },
+  // Updated navigation styles for content container positioning
   navContent: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '0 1rem',
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1rem',
+    position: 'sticky',
+    top: 0,
+    backgroundColor: '#f9f9f9',
+    zIndex: 10,
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    borderRadius: '8px 8px 0 0',
   },
   navLinks: {
     display: 'flex',
@@ -74,46 +67,17 @@ const styles = {
     background: 'none',
     border: 'none',
     padding: '0.5rem 1rem',
-    color: '#fff',
+    color: '#2c3e50',
     cursor: 'pointer',
     borderRadius: '4px',
     transition: 'background-color 0.3s',
   },
   navButtonActive: {
     backgroundColor: '#3498db',
-  },
-  link: {
     color: '#fff',
-    textDecoration: 'none',
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    transition: 'background-color 0.3s',
-  },
-  linkHover: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  heroSection: {
-    height: '100vh',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  heroContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-  },
-  scrollPrompt: {
-    position: 'absolute',
-    bottom: '2.5rem',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    textAlign: 'center',
-    color: '#fff'
   },
   section: {
-    padding: '4rem 1rem',
+    padding: '0 1rem 4rem 1rem',
     position: 'relative',
     flex: 1
   },
@@ -133,7 +97,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '2rem',
-    marginBottom: '2rem'
+    marginBottom: '2rem',
+    paddingTop: '2rem'
   },
   profileImage: {
     flex: '0 0 120px',
@@ -230,16 +195,15 @@ const styles = {
 };
 
 const PortfolioTemplate = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('profile');
 
   // Data for CV sections
   const skillsData = [
-    { subject: 'Python', A: 90, fullMark: 100 },
-    { subject: 'R', A: 85, fullMark: 100 },
+    { subject: 'Python', A: 95, fullMark: 100 },
+    { subject: 'R', A: 95, fullMark: 100 },
     { subject: 'Data Analysis', A: 85, fullMark: 100 },
     { subject: 'Machine Learning', A: 80, fullMark: 100 },
-    { subject: 'Unity/AR', A: 75, fullMark: 100 },
+    { subject: 'Unity/AR', A: 70, fullMark: 100 },
     { subject: 'SQL', A: 70, fullMark: 100 },
     { subject: 'JavaScript/React', A: 65, fullMark: 100 },
     { subject: 'C#', A: 60, fullMark: 100 },
@@ -290,6 +254,13 @@ const PortfolioTemplate = () => {
       period: '2020 - 2024',
       description: 'Thesis on model explanations in emotion-based music recommendations',
       duration: 48,
+    },
+    {
+      degree: 'Atheneum',
+      institution: 'Atheneum College Hageveld',
+      period: '2012 - 2019',
+      description: 'Got my VWO highschool diploma',
+      duration: 94,
     }
   ];
   
@@ -314,14 +285,6 @@ const PortfolioTemplate = () => {
     }
   ];
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
     <div style={styles.mainContainer}>
       
@@ -330,16 +293,23 @@ const PortfolioTemplate = () => {
         <Suspense fallback={null}>
           <OfficeScene />
         </Suspense>
-        <div className="scroll-prompt" style={styles.scrollPrompt}>
+        <div className="scroll-prompt" style={{
+          position: 'absolute',
+          bottom: '2.5rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          textAlign: 'center',
+          color: '#fff'
+        }}>
           <p style={{ marginBottom: '1rem' }}>Scroll to explore</p>
           <div>↓</div>
         </div>
       </div>
       
-      {/* Navigation */}
-      <nav style={{...styles.nav, ...(isScrolled ? styles.navScrolled : {})}}>
+      {/* Scrollable Content */}
+      <div style={styles.contentContainer}>
+        {/* Navigation moved to the content container */}
         <div style={styles.navContent}>
-          <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#fff' }}>Hein Brouwer</span>
           <div style={styles.navLinks}>
             <button 
               onClick={() => setActiveSection('profile')}
@@ -397,10 +367,7 @@ const PortfolioTemplate = () => {
             </button>
           </div>
         </div>
-      </nav>
-
-      {/* Scrollable Content */}
-      <div style={styles.contentContainer}>
+        
         <div style={styles.section} id="cv-content">
           <div style={styles.sectionContent}>
             {/* Profile Header - Always visible */}
@@ -455,7 +422,7 @@ const PortfolioTemplate = () => {
                     <li style={{ marginBottom: '0.5rem' }}>Teaching assistant for Information Science courses at Utrecht University</li>
                     <li style={{ marginBottom: '0.5rem' }}>Bachelor thesis on model explanations in emotion-based music recommendations (Grade: 8.0)</li>
                     <li style={{ marginBottom: '0.5rem' }}>Managed a €50,000 budget as Treasurer of the Diescomissie Board</li>
-                    <li style={{ marginBottom: '0.5rem' }}>Raised over €3,000 for "Oog voor Utrecht" charity</li>
+                    <li style={{ marginBottom: '0.5rem' }}>Raised over €2,400 for "Oog voor Utrecht" charity</li>
                   </ul>
                 </div>
               </div>

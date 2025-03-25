@@ -78,7 +78,7 @@ const EnhancedTimeline = () => {
       startYear: 2025,
       startMonth: 2,
       endYear: 2025,
-      endMonth: 3, // Current
+      endMonth: 7, 
       color: '#55b757'
     }
   ];
