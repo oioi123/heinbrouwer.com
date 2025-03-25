@@ -11,8 +11,22 @@ import { GithubIcon, LinkedinIcon, MailIcon, GlobeIcon } from 'lucide-react';
 
 const ResolutionScaler = ({ scale = 0.75 }) => {
   const { gl, size, camera } = useThree();
+  const prevSizeRef = useRef({ width: size.width, height: size.height });
+  const prevScaleRef = useRef(scale);
   
   useEffect(() => {
+    // Only update if scale or size has changed significantly
+    const sizeChanged = 
+      Math.abs(prevSizeRef.current.width - size.width) > 1 || 
+      Math.abs(prevSizeRef.current.height - size.height) > 1;
+    
+    const scaleChanged = Math.abs(prevScaleRef.current - scale) >= 0.01;
+    
+    if (!sizeChanged && !scaleChanged) return;
+    
+    // Store current position and target
+    const cameraPosition = camera.position.clone();
+    
     // Set renderer's pixel ratio based on the device's pixel ratio and our scale
     const pixelRatio = Math.min(window.devicePixelRatio, 2) * scale;
     gl.setPixelRatio(pixelRatio);
@@ -22,18 +36,23 @@ const ResolutionScaler = ({ scale = 0.75 }) => {
     const scaledHeight = Math.floor(size.height * scale);
     gl.setSize(scaledWidth, scaledHeight, false);
     
-    // Update camera aspect ratio and projection matrix
+    // Update aspect ratio but preserve position
     camera.aspect = size.width / size.height;
     camera.updateProjectionMatrix();
+    
+    // Restore camera position
+    camera.position.copy(cameraPosition);
     
     // Make sure the canvas still fills the container
     gl.domElement.style.width = '100%';
     gl.domElement.style.height = '100%';
     
+    // Update refs
+    prevSizeRef.current = { width: size.width, height: size.height };
+    prevScaleRef.current = scale;
+    
     return () => {
-      // Reset to default when component unmounts
-      gl.setPixelRatio(window.devicePixelRatio);
-      gl.setSize(size.width, size.height, false);
+      // No need to reset on cleanup as we'll update again if needed
     };
   }, [gl, size, scale, camera]);
   
@@ -276,9 +295,11 @@ const CameraController = ({ interactionState, targetPosition }) => {
   const controlsRef = useRef();
   const targetRef = useRef(new THREE.Vector3(0, 0, 0));
   const isAnimatingRef = useRef(false);
+  const prevInteractionTypeRef = useRef(INTERACTION_TYPES.NONE);
 
   useEffect(() => {
-    if (isAnimatingRef.current) return;
+    // Only animate if the interaction type has changed
+    if (prevInteractionTypeRef.current === interactionState.type || isAnimatingRef.current) return;
   
     const isZoomed = interactionState.type !== INTERACTION_TYPES.NONE;
     const position = targetPosition[interactionState.type] || { x: 0, y: 3, z: 5 };
@@ -287,14 +308,11 @@ const CameraController = ({ interactionState, targetPosition }) => {
       ? new THREE.Vector3(position.lookAt.x, position.lookAt.y, position.lookAt.z) 
       : new THREE.Vector3(0, 0, 0);
   
-    // Check if the camera is already at the desired position and look-at point
-    const currentPosition = new THREE.Vector3(camera.position.x, camera.position.y, camera.position.z);
-    if (
-      currentPosition.equals(new THREE.Vector3(position.x, position.y, position.z)) &&
-      targetRef.current.equals(targetLookAt)
-    ) {
-      return; // Skip re-animation
-    }
+    // Update the previous interaction type
+    prevInteractionTypeRef.current = interactionState.type;
+    
+    // Prevent animation if user is actively interacting with controls
+    if (controlsRef.current?.userRotate) return;
   
     isAnimatingRef.current = true;
   
@@ -324,6 +342,18 @@ const CameraController = ({ interactionState, targetPosition }) => {
     });
   }, [interactionState, targetPosition, camera.position]);
 
+  // Track when user is interacting with controls
+  const onStart = useCallback(() => {
+    controlsRef.current.userRotate = true;
+  }, []);
+
+  const onEnd = useCallback(() => {
+    // Add a short delay before allowing automatic camera movements again
+    setTimeout(() => {
+      controlsRef.current.userRotate = false;
+    }, 500);
+  }, []);
+
   return (
     <OrbitControls 
       ref={controlsRef}
@@ -335,6 +365,11 @@ const CameraController = ({ interactionState, targetPosition }) => {
       minAzimuthAngle={-Math.PI/2 + 0.1}
       maxAzimuthAngle={Math.PI/2 - 0.1}
       target={[0, 0, 0]}
+      onStart={onStart}
+      onEnd={onEnd}
+      // Increase damping to make movements smoother
+      dampingFactor={0.1}
+      enableDamping={true}
     />
   );
 };
@@ -850,7 +885,7 @@ const OfficeScene = () => {
           fpsUpdateTimerRef.current = setTimeout(() => {
             setDisplayFps(fpsRef.current);
             fpsUpdateTimerRef.current = null;
-          }, 500);
+          }, 1000);
         }
         
         // Adjust resolution scale based on performance
@@ -858,7 +893,7 @@ const OfficeScene = () => {
         if (currentFps < 30 && newScale > 0.5) {
           newScale = Math.max(0.5, newScale - 0.05);
         } else if (currentFps > 55 && newScale < 1) {
-          newScale = Math.min(1.05, newScale + 0.05);
+          newScale = Math.min(1.0, newScale + 0.10);
         }
         
         // Only update state if the scale has changed significantly
