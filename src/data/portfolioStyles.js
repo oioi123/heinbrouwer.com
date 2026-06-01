@@ -1,10 +1,12 @@
+import { colors, shadows } from '../theme';
+
 // Builds the portfolio style objects. Kept as a factory because many values
 // depend on viewport (isMobile) and scroll/nav state.
 export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, mobileNavHeight, mobileNavOpen }) => ({
   mainContainer: {
     minHeight: '100vh',
-    backgroundColor: '#ffffff',
-    color: '#333',
+    backgroundColor: colors.cardBg,
+    color: colors.textBody,
     position: 'relative',
     overflowX: 'hidden'
   },
@@ -19,10 +21,10 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
   contentContainer: {
     position: 'relative',
     zIndex: 2,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.pageBg,
     marginTop: '100vh',
     minHeight: '100vh',
-    boxShadow: '0 -10px 20px rgba(0, 0, 0, 0.2)',
+    boxShadow: shadows.content,
     borderRadius: '16px 16px 0 0',
     display: 'flex',
     flexDirection: 'column',
@@ -35,7 +37,7 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     width: '100%',
     backgroundColor: 'rgba(249, 249, 249, 0.95)',
     zIndex: 100,
-    boxShadow: isNavScrolled ? '0 2px 8px rgba(0, 0, 0, 0.15)' : 'none',
+    boxShadow: isNavScrolled ? shadows.nav : 'none',
     transition: 'opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
     opacity: isNavVisible ? 1 : 0,
     transform: isNavVisible ? 'translateY(0)' : 'translateY(-100%)',
@@ -72,9 +74,9 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     position: isMobile ? 'absolute' : 'static',
     top: isMobile ? '100%' : 'auto',
     left: 0,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.pageBg,
     padding: isMobile ? '0.75rem 0.5rem' : 0,
-    boxShadow: isMobile ? '0 4px 6px rgba(0, 0, 0, 0.1)' : 'none',
+    boxShadow: isMobile ? shadows.card : 'none',
     zIndex: 999,
     maxHeight: isMobile ? 'calc(100vh - 60px)' : 'auto',
     overflowY: isMobile ? 'auto' : 'visible',
@@ -83,7 +85,7 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     background: 'none',
     border: 'none',
     padding: '0.5rem 1rem',
-    color: '#2c3e50',
+    color: colors.dark,
     cursor: 'pointer',
     borderRadius: '4px',
     transition: 'background-color 0.3s',
@@ -91,7 +93,7 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     textAlign: 'left',
   },
   navButtonActive: {
-    backgroundColor: '#3498db',
+    backgroundColor: colors.primary,
     color: '#fff',
   },
   section: {
@@ -108,8 +110,8 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     fontSize: isMobile ? '1.8rem' : '2.5rem',
     fontWeight: 'bold',
     marginBottom: isMobile ? '2rem' : '3rem',
-    color: '#2c3e50',
-    borderBottom: '2px solid #3498db',
+    color: colors.dark,
+    borderBottom: `2px solid ${colors.primary}`,
     paddingBottom: '0.5rem'
   },
   profileContainer: {
@@ -128,7 +130,7 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     width: isMobile ? '100px' : '120px',
     height: isMobile ? '100px' : '120px',
     borderRadius: '50%',
-    backgroundColor: '#3498db',
+    backgroundColor: colors.primary,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -143,11 +145,11 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
   profileName: {
     fontSize: isMobile ? '2rem' : '2.5rem',
     marginBottom: '0.5rem',
-    color: '#2c3e50'
+    color: colors.dark
   },
   profileTitle: {
     fontSize: isMobile ? '1.2rem' : '1.5rem',
-    color: '#3498db',
+    color: colors.primary,
     fontWeight: '400',
     marginBottom: '1rem'
   },
@@ -162,7 +164,7 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     alignItems: 'center',
     gap: '0.5rem',
     textDecoration: 'none',
-    color: '#2c3e50',
+    color: colors.dark,
     padding: '0.5rem',
     borderRadius: '8px',
     transition: 'background-color 0.3s',
@@ -170,7 +172,7 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     marginBottom: isMobile ? '0.5rem' : 0,
   },
   highlightBox: {
-    backgroundColor: '#ecf0f1',
+    backgroundColor: colors.highlightBg,
     padding: isMobile ? '1rem' : '1.5rem',
     borderRadius: '8px',
     margin: '2rem 0'
@@ -192,26 +194,26 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     marginTop: '2rem'
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: colors.cardBg,
     padding: isMobile ? '1.25rem' : '1.5rem',
     borderRadius: '8px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    boxShadow: shadows.card,
     transition: 'transform 0.3s',
   },
   cardHover: {
     transform: 'translateY(-5px)',
   },
   experienceCard: {
-    borderLeft: '4px solid #3498db',
+    borderLeft: `4px solid ${colors.primary}`,
   },
   educationCard: {
-    borderLeft: '4px solid #2c3e50',
+    borderLeft: `4px solid ${colors.dark}`,
   },
   projectCard: {
-    borderTop: '4px solid #e74c3c',
+    borderTop: `4px solid ${colors.accent}`,
   },
   footer: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: colors.dark,
     padding: isMobile ? '1.5rem' : '2rem',
     textAlign: 'center',
     color: '#fff',
@@ -230,11 +232,11 @@ export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, m
     width: '3rem',
     height: '3rem',
     borderRadius: '50%',
-    backgroundColor: '#3498db',
+    backgroundColor: colors.primary,
     color: 'white',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    boxShadow: shadows.fab,
     zIndex: 100,
     border: 'none',
     cursor: 'pointer',

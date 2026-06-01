@@ -1,4 +1,5 @@
 import EnhancedTimeline from '../EnhancedTimeline';
+import { colors } from '../../theme';
 
 const TimelineSection = ({ styles, isMobile }) => (
   <div>
@@ -7,10 +8,10 @@ const TimelineSection = ({ styles, isMobile }) => (
     </div>
 
     <div style={{ marginTop: '2rem' }}>
-      <h3 style={{ color: '#3498db', marginBottom: '1rem', fontSize: isMobile ? '1.2rem' : '1.35rem' }}>Leadership & Volunteering Experience</h3>
+      <h3 style={{ color: colors.primary, marginBottom: '1rem', fontSize: isMobile ? '1.2rem' : '1.35rem' }}>Leadership & Volunteering Experience</h3>
       <div style={styles.experienceCards}>
         <div style={styles.card}>
-          <h4 style={{ color: '#2c3e50', marginBottom: '1rem', fontSize: isMobile ? '1rem' : '1.1rem' }}>Treasurer, Diescomissie Board</h4>
+          <h4 style={{ color: colors.dark, marginBottom: '1rem', fontSize: isMobile ? '1rem' : '1.1rem' }}>Treasurer, Diescomissie Board</h4>
           <ul style={{ marginLeft: '1.25rem' }}>
             <li style={{ marginBottom: '0.5rem' }}>Organized events for 300+ attendees</li>
             <li style={{ marginBottom: '0.5rem' }}>Managed a budget of €50,000</li>
@@ -18,7 +19,7 @@ const TimelineSection = ({ styles, isMobile }) => (
           </ul>
         </div>
         <div style={styles.card}>
-          <h4 style={{ color: '#2c3e50', marginBottom: '1rem', fontSize: isMobile ? '1rem' : '1.1rem' }}>Fundraising Committee Member</h4>
+          <h4 style={{ color: colors.dark, marginBottom: '1rem', fontSize: isMobile ? '1rem' : '1.1rem' }}>Fundraising Committee Member</h4>
           <ul style={{ marginLeft: '1.25rem' }}>
             <li style={{ marginBottom: '0.5rem' }}>Raised over €2,400 for "Oog voor Utrecht" charity</li>
             <li style={{ marginBottom: '0.5rem' }}>Coordinated fundraising initiatives and community outreach</li>

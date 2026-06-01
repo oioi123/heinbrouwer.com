@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { GithubIcon, LinkedinIcon, MailIcon, GlobeIcon } from 'lucide-react';
 import useResponsive from '../../hooks/useResponsive';
+import { colors } from '../../theme';
 
 const contactLink = {
   display: 'flex',
   alignItems: 'center',
   textDecoration: 'none',
-  color: '#27445D',
+  color: colors.overlayHeader,
   fontSize: '1.1rem',
   fontWeight: '500',
   padding: '0.5rem 0',
@@ -60,7 +61,7 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
         boxShadow: '0 4px 10px rgba(0, 0, 0, 0.15)',
       }}>
         <div style={{
-          backgroundColor: '#27445D',
+          backgroundColor: colors.overlayHeader,
           color: 'white',
           padding: isMobile ? '1rem' : '1.5rem',
           borderRadius: '12px 12px 0 0',
@@ -89,7 +90,7 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            onMouseEnter={(e) => (e.target.style.color = '#FF6B6B')}
+            onMouseEnter={(e) => (e.target.style.color = colors.accentHover)}
             onMouseLeave={(e) => (e.target.style.color = 'white')}
           >
             ✕
@@ -133,7 +134,7 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
                   width: '100%',
                   height: isMobile ? '48px' : 'auto',
                 }}
-                onFocus={(e) => (e.target.style.borderColor = '#FF6B6B')}
+                onFocus={(e) => (e.target.style.borderColor = colors.accentHover)}
                 onBlur={(e) => (e.target.style.borderColor = '#ddd')}
               />
               <input
@@ -152,7 +153,7 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
                   width: '100%',
                   height: isMobile ? '48px' : 'auto',
                 }}
-                onFocus={(e) => (e.target.style.borderColor = '#FF6B6B')}
+                onFocus={(e) => (e.target.style.borderColor = colors.accentHover)}
                 onBlur={(e) => (e.target.style.borderColor = '#ddd')}
               />
             </div>
@@ -172,12 +173,12 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
                 marginBottom: isMobile ? '1.25rem' : '1.5rem',
                 transition: 'border-color 0.3s',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#FF6B6B')}
+              onFocus={(e) => (e.target.style.borderColor = colors.accentHover)}
               onBlur={(e) => (e.target.style.borderColor = '#ddd')}
             />
             <button type="submit" style={{
               display: 'inline-block',
-              background: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)',
+              background: `linear-gradient(135deg, ${colors.dark} 0%, ${colors.primary} 100%)`,
               color: 'white',
               border: 'none',
               padding: isMobile ? '12px 24px' : '12px 30px',

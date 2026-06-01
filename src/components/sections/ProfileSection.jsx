@@ -1,3 +1,5 @@
+import { colors } from '../../theme';
+
 const ProfileSection = ({ styles, isMobile }) => (
   <div id="profile-section">
     <h2 style={styles.title}>Profile</h2>
@@ -14,7 +16,7 @@ const ProfileSection = ({ styles, isMobile }) => (
     </p>
 
     <div style={styles.highlightBox}>
-      <h3 style={{ color: '#3498db', marginBottom: '1rem', fontSize: isMobile ? '1.2rem' : '1.35rem' }}>Career Highlights</h3>
+      <h3 style={{ color: colors.primary, marginBottom: '1rem', fontSize: isMobile ? '1.2rem' : '1.35rem' }}>Career Highlights</h3>
       <ul style={{ marginLeft: '1.5rem' }}>
         <li style={{ marginBottom: '0.5rem' }}>Developed multiple AR applications for interactive walking experiences</li>
         <li style={{ marginBottom: '0.5rem' }}>Teaching assistant for Information Science courses at Utrecht University</li>

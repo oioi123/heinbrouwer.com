@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-export const MOBILE_BREAKPOINT = 768;
+import { MOBILE_BREAKPOINT } from '../theme';
 
 // Returns true when the viewport is narrower than the mobile breakpoint.
 export default function useResponsive(breakpoint = MOBILE_BREAKPOINT) {

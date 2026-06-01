@@ -10,6 +10,7 @@ import ProjectsSection from './sections/ProjectsSection';
 import TimelineSection from './sections/TimelineSection';
 import useResponsive from '../hooks/useResponsive';
 import { createPortfolioStyles } from '../data/portfolioStyles';
+import './portfolio.css';
 
 const MOBILE_NAV_HEIGHT = 60;
 
@@ -175,42 +176,6 @@ const PortfolioTemplate = () => {
           ↑
         </button>
       )}
-
-      <style jsx>{`
-        .scroll-prompt {
-          animation: bobbing 1.5s ease-in-out infinite;
-          transition: all 0.3s ease;
-        }
-
-        .scroll-prompt:hover {
-          transform: translateY(-5px) translateX(-50%);
-          background-color: rgba(0,0,0,0.7) !important;
-        }
-
-        @keyframes bobbing {
-          0%, 100% { transform: translateY(0) translateX(-50%); }
-          50% { transform: translateY(-10px) translateX(-50%); }
-        }
-
-        @media (max-width: 768px) {
-          button, a {
-            min-height: 44px;
-            min-width: 44px;
-            display: flex;
-            align-items: center;
-          }
-        }
-
-        @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .nav-scrolled {
-          box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
-          background-color: rgba(249, 249, 249, 0.98) !important;
-        }
-      `}</style>
     </div>
   );
 };

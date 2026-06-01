@@ -2,11 +2,12 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
 } from 'recharts';
 import { skillsData } from '../../data/portfolioData';
+import { colors } from '../../theme';
 
 const listItem = { marginBottom: '0.5rem', paddingLeft: '1.25rem', position: 'relative' };
 
 const SkillsSection = ({ styles, isMobile }) => {
-  const heading = { color: '#3498db', marginBottom: '0.75rem', fontSize: isMobile ? '1.1rem' : '1.2rem' };
+  const heading = { color: colors.primary, marginBottom: '0.75rem', fontSize: isMobile ? '1.1rem' : '1.2rem' };
 
   return (
     <div id="skills-section">

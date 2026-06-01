@@ -2,6 +2,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { experienceData } from '../../data/portfolioData';
+import { colors } from '../../theme';
 
 const ExperienceSection = ({ styles, isMobile }) => {
   const cardHeader = {
@@ -12,7 +13,7 @@ const ExperienceSection = ({ styles, isMobile }) => {
     marginBottom: '0.5rem'
   };
   const jobTitle = {
-    color: '#2c3e50',
+    color: colors.dark,
     marginBottom: isMobile ? '0.25rem' : '0',
     fontSize: isMobile ? '1.1rem' : '1.2rem'
   };
@@ -53,18 +54,18 @@ const ExperienceSection = ({ styles, isMobile }) => {
           <div style={{ ...styles.card, ...styles.experienceCard }} key={index}>
             <div style={cardHeader}>
               <h3 style={jobTitle}>{job.name}</h3>
-              <span style={{ fontSize: '0.9rem', color: '#666' }}>{job.period}</span>
+              <span style={{ fontSize: '0.9rem', color: colors.textMuted }}>{job.period}</span>
             </div>
-            <div style={{ fontWeight: '500', color: '#3498db', marginBottom: '1rem' }}>{job.company}</div>
+            <div style={{ fontWeight: '500', color: colors.primary, marginBottom: '1rem' }}>{job.company}</div>
             <p>{job.description}</p>
           </div>
         ))}
-        <div style={{ ...styles.card, ...styles.experienceCard, borderLeft: '4px solid #e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.05)' }}>
+        <div style={{ ...styles.card, ...styles.experienceCard, borderLeft: `4px solid ${colors.accent}`, backgroundColor: 'rgba(231, 76, 60, 0.05)' }}>
           <div style={cardHeader}>
             <h3 style={jobTitle}>Student Assistant (Upcoming)</h3>
             <span style={{ fontSize: '0.9rem', color: '#666' }}>Starting September 2025</span>
           </div>
-          <div style={{ fontWeight: '500', color: '#3498db', marginBottom: '1rem' }}>Utrecht University</div>
+          <div style={{ fontWeight: '500', color: colors.primary, marginBottom: '1rem' }}>Utrecht University</div>
           <p>Will assist with the third-year Information Science course "Data Ethics"</p>
         </div>
       </div>
