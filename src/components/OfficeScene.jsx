@@ -858,6 +858,25 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
     message: '',
   });
   const [formStatus, setFormStatus] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    checkMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   if (!isVisible) return null;
 
@@ -899,7 +918,7 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
       alignItems: 'center',
       pointerEvents: 'none',
       backgroundColor: 'rgba(0, 0, 0, 0.7)',
-      padding: '2rem',
+      padding: isMobile ? '1rem' : '2rem',
       zIndex: 50
     }}>
       <div style={{
@@ -908,7 +927,7 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
         borderRadius: '12px',
         maxWidth: '900px',
         width: '100%',
-        maxHeight: '80vh',
+        maxHeight: isMobile ? '90vh' : '80vh',
         overflowY: 'auto',
         position: 'relative',
         pointerEvents: 'auto',
@@ -917,13 +936,19 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
         <div style={{
           backgroundColor: '#27445D',
           color: 'white',
-          padding: '1.5rem',
+          padding: isMobile ? '1rem' : '1.5rem',
           borderRadius: '12px 12px 0 0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <h2 style={{ margin: 0, fontSize: '1.75rem' }}>Contact Hein Brouwer</h2>
+          <h2 style={{ 
+            margin: 0, 
+            fontSize: isMobile ? '1.3rem' : '1.75rem',
+            paddingRight: isMobile ? '10px' : '0'
+          }}>
+            Contact Hein Brouwer
+          </h2>
           <button
             onClick={onClose}
             style={{
@@ -933,6 +958,10 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
               fontSize: '1.5rem',
               cursor: 'pointer',
               transition: 'color 0.3s',
+              padding: isMobile ? '10px' : '5px', // Larger touch target on mobile
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
             onMouseEnter={(e) => e.target.style.color = '#FF6B6B'}
             onMouseLeave={(e) => e.target.style.color = 'white'}
@@ -941,13 +970,26 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
           </button>
         </div>
 
-        <div style={{ padding: '2rem' }}>
-          <form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+        <div style={{ padding: isMobile ? '1.25rem' : '2rem' }}>
+          {formStatus && (
+            <div style={{
+              backgroundColor: '#e7f7ef',
+              color: '#2e7d32',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              fontSize: isMobile ? '0.9rem' : '1rem'
+            }}>
+              {formStatus}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '1.5rem',
-              marginBottom: '1.5rem'
+              gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+              gap: isMobile ? '1rem' : '1.5rem',
+              marginBottom: isMobile ? '1rem' : '1.5rem'
             }}>
               <input
                 type="text"
@@ -960,8 +1002,10 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
                   padding: '0.75rem',
                   border: '1px solid #ddd',
                   borderRadius: '8px',
-                  fontSize: '1rem',
+                  fontSize: isMobile ? '0.95rem' : '1rem',
                   transition: 'border-color 0.3s',
+                  width: '100%',
+                  height: isMobile ? '48px' : 'auto', // Taller input field on mobile
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#FF6B6B'}
                 onBlur={(e) => e.target.style.borderColor = '#ddd'}
@@ -977,8 +1021,10 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
                   padding: '0.75rem',
                   border: '1px solid #ddd',
                   borderRadius: '8px',
-                  fontSize: '1rem',
+                  fontSize: isMobile ? '0.95rem' : '1rem',
                   transition: 'border-color 0.3s',
+                  width: '100%',
+                  height: isMobile ? '48px' : 'auto', // Taller input field on mobile
                 }}
                 onFocus={(e) => e.target.style.borderColor = '#FF6B6B'}
                 onBlur={(e) => e.target.style.borderColor = '#ddd'}
@@ -989,15 +1035,15 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
               value={formData.message}
               onChange={handleInputChange}
               placeholder="Your Message"
-              rows="4"
+              rows={isMobile ? "3" : "4"}
               required
               style={{
                 width: '100%',
                 padding: '0.75rem',
                 border: '1px solid #ddd',
                 borderRadius: '8px',
-                fontSize: '1rem',
-                marginBottom: '1.5rem',
+                fontSize: isMobile ? '0.95rem' : '1rem',
+                marginBottom: isMobile ? '1.25rem' : '1.5rem',
                 transition: 'border-color 0.3s',
               }}
               onFocus={(e) => e.target.style.borderColor = '#FF6B6B'}
@@ -1008,36 +1054,72 @@ const WebsiteDetailUI = ({ onClose, isVisible }) => {
                   background: 'linear-gradient(135deg, #2c3e50 0%, #3498db 100%)',
                   color: 'white',
                   border: 'none',
-                  padding: '12px 30px',
+                  padding: isMobile ? '12px 24px' : '12px 30px',
                   borderRadius: '30px',
-                  fontSize: '16px',
+                  fontSize: isMobile ? '15px' : '16px',
                   fontWeight: 'bold',
                   cursor: 'pointer',
                   boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
                   textDecoration: 'none',
-                  transition: 'transform 0.2s, box-shadow 0.2s'
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  width: isMobile ? '100%' : 'auto', // Full width on mobile
+                  minHeight: isMobile ? '48px' : 'auto', // Taller button on mobile
             }}>
               Send Message
             </button>
           </form>
 
-          <h3 style={{ marginBottom: '1rem' }}>Connect with Me</h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <a href="http://www.heinbrouwer.com" target="_blank" rel="noopener noreferrer" style={styles.contactLink}>
-              <GlobeIcon size={24} />
-              <span>Portfolio</span>
+          <h3 style={{ 
+            marginBottom: isMobile ? '0.75rem' : '1rem',
+            fontSize: isMobile ? '1.1rem' : '1.25rem'
+          }}>
+            Connect with Me
+          </h3>
+          <div style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: isMobile ? '1rem' : '1.5rem',
+            flexDirection: isMobile ? 'column' : 'row' // Stack vertically on mobile
+          }}>
+            <a href="http://www.heinbrouwer.com" target="_blank" rel="noopener noreferrer" style={{
+              ...styles.contactLink,
+              fontSize: isMobile ? '1rem' : '1.1rem',
+              padding: isMobile ? '10px 0' : '0.5rem 0', // More padding on mobile for better touch targets
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <GlobeIcon size={isMobile ? 20 : 24} />
+              <span style={{ marginLeft: '8px' }}>Portfolio</span>
             </a>
-            <a href="mailto:hein.brouwer@planet.nl" style={styles.contactLink}>
-              <MailIcon size={24} />
-              <span>Email</span>
+            <a href="mailto:hein.brouwer@planet.nl" style={{
+              ...styles.contactLink,
+              fontSize: isMobile ? '1rem' : '1.1rem',
+              padding: isMobile ? '10px 0' : '0.5rem 0',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <MailIcon size={isMobile ? 20 : 24} />
+              <span style={{ marginLeft: '8px' }}>Email</span>
             </a>
-            <a href="https://github.com/oioi123" target="_blank" rel="noopener noreferrer" style={styles.contactLink}>
-              <GithubIcon size={24} />
-              <span>GitHub</span>
+            <a href="https://github.com/oioi123" target="_blank" rel="noopener noreferrer" style={{
+              ...styles.contactLink,
+              fontSize: isMobile ? '1rem' : '1.1rem',
+              padding: isMobile ? '10px 0' : '0.5rem 0',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <GithubIcon size={isMobile ? 20 : 24} />
+              <span style={{ marginLeft: '8px' }}>GitHub</span>
             </a>
-            <a href="https://www.linkedin.com/in/hein-brouwer-a76793326/" target="_blank" rel="noopener noreferrer" style={styles.contactLink}>
-              <LinkedinIcon size={24} />
-              <span>LinkedIn</span>
+            <a href="https://www.linkedin.com/in/hein-brouwer-a76793326/" target="_blank" rel="noopener noreferrer" style={{
+              ...styles.contactLink,
+              fontSize: isMobile ? '1rem' : '1.1rem',
+              padding: isMobile ? '10px 0' : '0.5rem 0',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+              <LinkedinIcon size={isMobile ? 20 : 24} />
+              <span style={{ marginLeft: '8px' }}>LinkedIn</span>
             </a>
           </div>
         </div>
