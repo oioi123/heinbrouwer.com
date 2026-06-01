@@ -1,0 +1,242 @@
+// Builds the portfolio style objects. Kept as a factory because many values
+// depend on viewport (isMobile) and scroll/nav state.
+export const createPortfolioStyles = ({ isMobile, isNavScrolled, isNavVisible, mobileNavHeight, mobileNavOpen }) => ({
+  mainContainer: {
+    minHeight: '100vh',
+    backgroundColor: '#ffffff',
+    color: '#333',
+    position: 'relative',
+    overflowX: 'hidden'
+  },
+  sceneContainer: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100vh',
+    zIndex: 1
+  },
+  contentContainer: {
+    position: 'relative',
+    zIndex: 2,
+    backgroundColor: '#f9f9f9',
+    marginTop: '100vh',
+    minHeight: '100vh',
+    boxShadow: '0 -10px 20px rgba(0, 0, 0, 0.2)',
+    borderRadius: '16px 16px 0 0',
+    display: 'flex',
+    flexDirection: 'column',
+    paddingTop: mobileNavHeight
+  },
+  stickyNav: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    backgroundColor: 'rgba(249, 249, 249, 0.95)',
+    zIndex: 100,
+    boxShadow: isNavScrolled ? '0 2px 8px rgba(0, 0, 0, 0.15)' : 'none',
+    transition: 'opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease',
+    opacity: isNavVisible ? 1 : 0,
+    transform: isNavVisible ? 'translateY(0)' : 'translateY(-100%)',
+    pointerEvents: isNavVisible ? 'auto' : 'none',
+    borderRadius: '0 0 16px 16px',
+  },
+  navContent: {
+    display: 'flex',
+    justifyContent: 'center',
+    padding: '0.75rem',
+    flexDirection: isMobile ? 'column' : 'row',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    width: '100%',
+  },
+  mobileMenuButton: {
+    display: isMobile ? 'flex' : 'none',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0.5rem',
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    alignSelf: 'flex-end',
+    marginRight: '1rem',
+    zIndex: 10,
+  },
+  navLinks: {
+    display: isMobile && !mobileNavOpen ? 'none' : 'flex',
+    gap: '0.75rem',
+    flexWrap: 'wrap',
+    flexDirection: isMobile ? 'column' : 'row',
+    width: isMobile ? '100%' : 'auto',
+    position: isMobile ? 'absolute' : 'static',
+    top: isMobile ? '100%' : 'auto',
+    left: 0,
+    backgroundColor: '#f9f9f9',
+    padding: isMobile ? '0.75rem 0.5rem' : 0,
+    boxShadow: isMobile ? '0 4px 6px rgba(0, 0, 0, 0.1)' : 'none',
+    zIndex: 999,
+    maxHeight: isMobile ? 'calc(100vh - 60px)' : 'auto',
+    overflowY: isMobile ? 'auto' : 'visible',
+  },
+  navButton: {
+    background: 'none',
+    border: 'none',
+    padding: '0.5rem 1rem',
+    color: '#2c3e50',
+    cursor: 'pointer',
+    borderRadius: '4px',
+    transition: 'background-color 0.3s',
+    width: isMobile ? '100%' : 'auto',
+    textAlign: 'left',
+  },
+  navButtonActive: {
+    backgroundColor: '#3498db',
+    color: '#fff',
+  },
+  section: {
+    padding: isMobile ? '0 1rem 3rem 1rem' : '0 1rem 4rem 1rem',
+    position: 'relative',
+    flex: 1
+  },
+  sectionContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    width: '100%',
+  },
+  title: {
+    fontSize: isMobile ? '1.8rem' : '2.5rem',
+    fontWeight: 'bold',
+    marginBottom: isMobile ? '2rem' : '3rem',
+    color: '#2c3e50',
+    borderBottom: '2px solid #3498db',
+    paddingBottom: '0.5rem'
+  },
+  profileContainer: {
+    display: 'flex',
+    flexDirection: isMobile ? 'column' : 'row',
+    alignItems: isMobile ? 'center' : 'flex-start',
+    gap: isMobile ? '1rem' : '2rem',
+    marginBottom: '2rem',
+    paddingTop: '2rem',
+    textAlign: isMobile ? 'center' : 'left',
+  },
+  profileImage: {
+    flex: '0 0 auto',
+  },
+  placeholderImage: {
+    width: isMobile ? '100px' : '120px',
+    height: isMobile ? '100px' : '120px',
+    borderRadius: '50%',
+    backgroundColor: '#3498db',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: 'white',
+    fontSize: isMobile ? '2rem' : '2.5rem',
+    fontWeight: 'bold',
+  },
+  profileInfo: {
+    flex: '1',
+    width: isMobile ? '100%' : 'auto',
+  },
+  profileName: {
+    fontSize: isMobile ? '2rem' : '2.5rem',
+    marginBottom: '0.5rem',
+    color: '#2c3e50'
+  },
+  profileTitle: {
+    fontSize: isMobile ? '1.2rem' : '1.5rem',
+    color: '#3498db',
+    fontWeight: '400',
+    marginBottom: '1rem'
+  },
+  contactLinks: {
+    display: 'flex',
+    gap: '1rem',
+    flexWrap: 'wrap',
+    justifyContent: isMobile ? 'center' : 'flex-start',
+  },
+  contactLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    textDecoration: 'none',
+    color: '#2c3e50',
+    padding: '0.5rem',
+    borderRadius: '8px',
+    transition: 'background-color 0.3s',
+    fontSize: isMobile ? '0.9rem' : '1rem',
+    marginBottom: isMobile ? '0.5rem' : 0,
+  },
+  highlightBox: {
+    backgroundColor: '#ecf0f1',
+    padding: isMobile ? '1rem' : '1.5rem',
+    borderRadius: '8px',
+    margin: '2rem 0'
+  },
+  skillsContainer: {
+    display: 'grid',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: isMobile ? '1.5rem' : '2rem',
+  },
+  skillsList: {
+    display: 'grid',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: isMobile ? '1rem' : '1.5rem',
+  },
+  experienceCards: {
+    display: 'grid',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: isMobile ? '1rem' : '1.5rem',
+    marginTop: '2rem'
+  },
+  card: {
+    backgroundColor: 'white',
+    padding: isMobile ? '1.25rem' : '1.5rem',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    transition: 'transform 0.3s',
+  },
+  cardHover: {
+    transform: 'translateY(-5px)',
+  },
+  experienceCard: {
+    borderLeft: '4px solid #3498db',
+  },
+  educationCard: {
+    borderLeft: '4px solid #2c3e50',
+  },
+  projectCard: {
+    borderTop: '4px solid #e74c3c',
+  },
+  footer: {
+    backgroundColor: '#2c3e50',
+    padding: isMobile ? '1.5rem' : '2rem',
+    textAlign: 'center',
+    color: '#fff',
+    marginTop: 'auto'
+  },
+  chartContainer: {
+    width: '100%',
+    height: isMobile ? '300px' : '400px',
+    marginBottom: '1.5rem',
+  },
+  scrollToTopButton: {
+    display: isMobile ? 'flex' : 'none',
+    position: 'fixed',
+    bottom: '1.5rem',
+    right: '1.5rem',
+    width: '3rem',
+    height: '3rem',
+    borderRadius: '50%',
+    backgroundColor: '#3498db',
+    color: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+    zIndex: 100,
+    border: 'none',
+    cursor: 'pointer',
+  }
+});
